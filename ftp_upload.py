@@ -1,4 +1,3 @@
-from zipapp import create_archive
 import credenziali
 import pysftp
 import os
@@ -6,7 +5,7 @@ from pathlib import *
 import modifiche
 import importlib
 import time
-import check
+
 
 cnopts = pysftp.CnOpts()
 cnopts.hostkeys = None  
