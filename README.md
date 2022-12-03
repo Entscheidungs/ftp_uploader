@@ -1,4 +1,5 @@
 # Ftp_uploader
+NOTA BENE: sto aggiornando il programma
 Uploader ftp che controlla ogni x minuti se ho modificato dei file e nel caso li invia ad un vps che uso come storage, nel caso io perda i file o abbia bisogno di un backup. Il programma presenta molti problemi, è ancora alla sua versione base:
 
 -E' hardcodato
