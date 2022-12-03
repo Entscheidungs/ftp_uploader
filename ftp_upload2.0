@@ -1,0 +1,95 @@
+import paramiko
+import time
+import credenziali
+import pysftp
+import os
+from pathlib import *
+import json
+
+cnopts = pysftp.CnOpts()
+cnopts.hostkeys = None  
+
+
+def trova_percorsi(path,diz):
+
+
+    percorso = path.split('/')[:-1]
+    for _x in range(len(percorso)):
+        diz[str(path)].append("/".join(percorso[:_x+1])+"/")
+        print(f"in {str(path)} ho aggiunto, {diz[str(path)]}")
+    return diz
+
+
+def ottieni_modifiche():
+    with pysftp.Connection(host=credenziali.myHostname, username="root", password=credenziali.myPassword, cnopts=cnopts) as sftp:
+        remoteFilePath = '/root/ftp/modifiche.json'
+        localFilePath = '/home/chris/Documenti/script/ftp/modifiche.json'
+        sftp.get(remoteFilePath, localFilePath) #per il get devi prima mettere il percorso remoto e poi quello locale
+
+def upload_totale():
+    #questa funzione carica tutti i file sul server per vedere quanto ci mette
+    with pysftp.Connection(host=credenziali.myHostname, username="root", password=credenziali.myPassword, cnopts=cnopts) as sftp:
+        sftp.put_r("/home/chris/Documenti/Studio","/root/Documenti/Studio")
+
+def upload_con_confronto():
+    c = 0 #contatore
+    trasferiti  = [] #lista file trasferiti
+    lista_errori = []
+    f = open("modifiche.json")
+    diz = json.load(f)
+    with pysftp.Connection(host=credenziali.myHostname, username=credenziali.myUsername, password=credenziali.myPassword, cnopts=cnopts) as sftp:
+            for file in Path("/home/chris/Documenti/Studio").rglob("*.*"):
+                p_file = str(file)
+                path_remoto = p_file.replace("/home/chris/Documenti/Studio","/root/Documenti/Studio")
+                modifica_locale = os.path.getmtime(p_file)
+                try:
+                    modifica_remoto = diz[path_remoto][0]
+                    if modifica_locale > modifica_remoto:
+                        sftp.put(p_file,path_remoto)
+                        print(path_remoto)
+                    trasferiti.append(p_file)
+
+                except KeyError:
+                    if path_remoto not in diz.keys():
+                        diz[path_remoto] = []
+                    diz = trova_percorsi(path_remoto,diz)
+                    lista_errori.append(p_file)
+                    for path in diz[path_remoto]:
+                       print(path)
+                
+                except IsADirectoryError:
+                    print(p_file)
+
+            print(f"file trasferiti: {len(trasferiti)}")
+            print(f"errori: {len(lista_errori)}")
+            riscrivi_errori(lista_errori,diz)
+def riscrivi_errori(lista_errori,diz):
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    client.connect(credenziali.myHostname, username=credenziali.myUsername, password=credenziali.myPassword)
+
+    with pysftp.Connection(host=credenziali.myHostname, username=credenziali.myUsername, password=credenziali.myPassword, cnopts=cnopts) as sftp:
+        for p in lista_errori:
+            print(p)
+            path_remoto = p.replace("/home/chris/Documenti/Studio","/root/Documenti/Studio")
+            try:
+                sftp.put(p,path_remoto)
+            except:
+                for x in diz[path_remoto]:
+                    print(x)
+                    print("mkdir "+x)
+                    comando = "mkdir "+x
+                    stdin, stdout, stderr = client.exec_command(comando)
+                    for x in stderr.readlines():
+                        print(x)
+
+            sftp.put(p,path_remoto)
+    client.close()
+
+
+while True:
+    ottieni_modifiche()
+    upload_con_confronto()
+    time.sleep(300)
+
+#upload_totale()
