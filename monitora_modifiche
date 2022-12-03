@@ -1,0 +1,14 @@
+from pathlib import Path
+import os
+import time
+from pathlib import Path
+import json
+dizionario_modifiche = {}
+
+
+p_file = "/home/chris/Documenti/Studio/"
+p_file_remoto = "/root/Documenti/Studio/"
+for x in Path(p_file_remoto).rglob("*.*"):
+    dizionario_modifiche[str(x)] = [os.path.getmtime(x)]
+with open("/root/ftp/modifiche.json","w") as file:
+    json.dump(dizionario_modifiche,file)
