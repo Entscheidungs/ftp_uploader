@@ -11,6 +11,8 @@ cnopts.hostkeys = None
 
 
 def trova_percorsi(path,diz):
+
+
     percorso = path.split('/')[:-1]
     for _x in range(len(percorso)):
         diz[str(path)].append("/".join(percorso[:_x+1])+"/")
@@ -19,14 +21,14 @@ def trova_percorsi(path,diz):
 
 
 def ottieni_modifiche():
-    with pysftp.Connection(host=credenziali.myHostname, username="root", password=credenziali.myPassword, cnopts=cnopts) as sftp:
+    with pysftp.Connection(host=credenziali.myHostname, username=credenziali.myUsername, password=credenziali.myPassword, cnopts=cnopts) as sftp:
         remoteFilePath = '/root/ftp/modifiche.json'
         localFilePath = '/home/chris/Documenti/script/ftp/modifiche.json'
         sftp.get(remoteFilePath, localFilePath) #per il get devi prima mettere il percorso remoto e poi quello locale
 
 def upload_totale():
     #questa funzione carica tutti i file sul server per vedere quanto ci mette
-    with pysftp.Connection(host=credenziali.myHostname, username="root", password=credenziali.myPassword, cnopts=cnopts) as sftp:
+    with pysftp.Connection(host=credenziali.myHostname, username=credenziali.myUsername, password=credenziali.myPassword, cnopts=cnopts) as sftp:
         sftp.put_r("/home/chris/Documenti/Studio","/root/Documenti/Studio")
 
 def upload_con_confronto():
@@ -58,8 +60,6 @@ def upload_con_confronto():
                 except IsADirectoryError:
                     print(p_file)
 
-            print(f"file trasferiti: {len(trasferiti)}")
-            print(f"errori: {len(lista_errori)}")
             riscrivi_errori(lista_errori,diz)
 def riscrivi_errori(lista_errori,diz):
     client = paramiko.SSHClient()
@@ -74,12 +74,9 @@ def riscrivi_errori(lista_errori,diz):
                 sftp.put(p,path_remoto)
             except:
                 for x in diz[path_remoto]:
-                    print(x)
-                    print("mkdir "+x)
                     comando = "mkdir "+x
-                    stdin, stdout, stderr = client.exec_command(comando)
-                    for x in stderr.readlines():
-                        print(x)
+                    client.exec_command(comando)
+
 
             sftp.put(p,path_remoto)
     client.close()
@@ -88,4 +85,4 @@ def riscrivi_errori(lista_errori,diz):
 while True:
     ottieni_modifiche()
     upload_con_confronto()
-    time.sleep(300)
+    time.sleep(100)
