@@ -11,8 +11,6 @@ cnopts.hostkeys = None
 
 
 def trova_percorsi(path,diz):
-
-
     percorso = path.split('/')[:-1]
     for _x in range(len(percorso)):
         diz[str(path)].append("/".join(percorso[:_x+1])+"/")
@@ -35,7 +33,7 @@ def upload_con_confronto():
     c = 0 #contatore
     trasferiti  = [] #lista file trasferiti
     lista_errori = []
-    f = open("modifiche.json")
+    f = open("/home/chris/Documenti/script/ftp/modifiche.json")
     diz = json.load(f)
     with pysftp.Connection(host=credenziali.myHostname, username=credenziali.myUsername, password=credenziali.myPassword, cnopts=cnopts) as sftp:
             for file in Path("/home/chris/Documenti/Studio").rglob("*.*"):
@@ -91,5 +89,3 @@ while True:
     ottieni_modifiche()
     upload_con_confronto()
     time.sleep(300)
-
-#upload_totale()
