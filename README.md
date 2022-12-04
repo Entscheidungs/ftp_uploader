@@ -7,3 +7,5 @@ Questo programma controlla periodicamente se sono state effettuate modifiche all
 Ad esempio, mi è capitato di modificare un programma e di avere bisogno di una versione precedente di esso, e con undo non riuscivo a tornare a quella versione precedente, ma il programma era stato caricato precedentemente sulla macchina remota, e quindi ho potuto accedere alla versione precedente.
 
 Attualmente i path dei file sono impostati solo per sistemi linux (ad esempio come path ho /home/chris/Documenti) ed il percorso è hardcoded (bisogna modificare il programma nel caso si voglia cambiare percorso di partenza e di destinazione).
+
+Il file _monitora_modifiche.py_ è presente sulla macchina remota, che periodicamente controlla tutte le date di ultima modifica dei file, che poi verranno lette dal programma locale e confrontate con quelle dei file locali.
