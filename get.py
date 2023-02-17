@@ -2,6 +2,7 @@ import pysftp
 import credenziali
 import os
 import json
+import time
 
 cnopts = pysftp.CnOpts()
 cnopts.hostkeys = None
@@ -19,21 +20,16 @@ def ottieni_modifiche():
 
 
 def crea_path(path):
-    print(f"entra {path}")
     percorso = path.split('/')[:-1]
     p = ""
     for _x in range(len(percorso)):
          p+=percorso[_x]+"/"
-         print(p)
          os.system(f"mkdir {p}")
 
     
 
 
 def upload_con_confronto():
-    global err
-    #c = 0 #contatore
-    trasferiti  = [] #lista file trasferiti
     lista_errori = []
     f = open(path_registro)
     with pysftp.Connection(host=credenziali.myHostname, username=credenziali.myUsername, password=credenziali.myPassword, cnopts=cnopts) as sftp:
@@ -43,21 +39,18 @@ def upload_con_confronto():
                         #! caso speciale
                     if nome_file[0] == ".":
                         continue
-                    path_locale = p_file.replace("/home/Documenti/Studio/",path_files)
+                    path_locale = p_file.replace("/root/chris/Documenti/Studio/",path_files)
                     if os.path.exists(path_locale):
                         modifica_locale = os.path.getmtime(path_locale)
-
-                        #print(path_locale)
                         modifica_remoto = l[p_file]
-                        #print(p_file)
-                        #print(path_locale)
+                        print(p_file)
+                        print(path_locale)
                         if modifica_locale < modifica_remoto:
                             print(f"entra {path_locale}")
                             sftp.get(p_file,path_locale)
-                            trasferiti.append(p_file)
                     else:
                         try:
-                            os.system('echo %s|sudo -S %s' % (credenziali.myPcPassword, f"touch {path_locale}"))
+                            os.system(f"touch {path_locale}")
                             sftp.get(p_file,path_locale)
                             print("trasferito")
                         except:
@@ -65,13 +58,14 @@ def upload_con_confronto():
                             crea_path(path_locale)
                             lista_errori.append((p_file,path_locale))
                     
-            #riscrivi_errori(lista_errori,diz)
 
             print
             for elm in lista_errori:
                 sftp.get(elm[0],elm[1])
 
-ottieni_modifiche()
-upload_con_confronto()
-os.system(f"sudo chmod 777 -R {path_files}")
+
+while True:
+    ottieni_modifiche()
+    upload_con_confronto()
+    time.sleep(3)
 
