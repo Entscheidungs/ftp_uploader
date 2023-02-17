@@ -3,13 +3,26 @@ import os
 import time
 import json
 
-
-p_file = "xxx"
-p_file_remoto = "xxx"
+outputs = "/root/ftp/outs.txt"
+p_file = "-"
+p_file_remoto = "/root/chris/Documenti/Studio"
 while True:
     dizionario_modifiche = {}
     for x in Path(p_file_remoto).rglob("*.*"):
-        dizionario_modifiche[str(x)] = [os.path.getmtime(x)]
-    with open("xxx","w") as file:
+        dizionario_modifiche[str(x)] = os.path.getmtime(x)
+    with open("/root/ftp/modifiche.json","w") as file:
         json.dump(dizionario_modifiche,file)
-    time.sleep(100)
+    f = open("/root/ftp/modifiche.json","r")
+    diz = json.load(f)
+    for file in Path(p_file_remoto).rglob("*.*"):
+            try:
+                p_file = str(file)
+                path_remoto = p_file.replace(p_file_remoto,"/home/chris/Documenti/Studio")
+                modifica_locale = os.path.getmtime(p_file)
+                f = open(outputs,"w")
+                modifica_remoto = diz[path_remoto]
+                if modifica_locale > modifica_remoto:
+                    f.write(f"{p_file_remoto}")
+            except:
+                 pass
+    time.sleep(3)
