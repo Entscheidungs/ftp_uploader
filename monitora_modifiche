@@ -4,25 +4,36 @@ import time
 import json
 
 outputs = "/root/ftp/outs.txt"
-p_file = "-"
-p_file_remoto = "/root/chris/Documenti/Studio"
+p_file = "/home/chris/desk/"
+p_file_remoto = "/chris/"
+#p_file,p_file_remoto = p_file_remoto,p_file
+
 while True:
     dizionario_modifiche = {}
     for x in Path(p_file_remoto).rglob("*.*"):
         dizionario_modifiche[str(x)] = os.path.getmtime(x)
+        #inizializzo un dizionario che contiene il percorso di ogni file con il orario di ultima modifica
+
     with open("/root/ftp/modifiche.json","w") as file:
         json.dump(dizionario_modifiche,file)
+        #uso un file json per salvare le modifiche
+    
+"""
     f = open("/root/ftp/modifiche.json","r")
     diz = json.load(f)
     for file in Path(p_file_remoto).rglob("*.*"):
-            try:
-                p_file = str(file)
-                path_remoto = p_file.replace(p_file_remoto,"/home/chris/Documenti/Studio")
-                modifica_locale = os.path.getmtime(p_file)
-                f = open(outputs,"w")
-                modifica_remoto = diz[path_remoto]
-                if modifica_locale > modifica_remoto:
-                    f.write(f"{p_file_remoto}")
-            except:
-                 pass
+            print("entra")
+            if str(file)[0] != ".":
+                try:
+                    p_file = str(file)
+                    path_remoto = p_file.replace(p_file_remoto,p_file)
+                    print(path_remoto)
+                    modifica_locale = os.path.getmtime(p_file)
+                    f = open(outputs,"w")
+                    modifica_remoto = diz[path_remoto]
+                    if modifica_locale > modifica_remoto:
+                        f.write(f"{p_file_remoto}")
+                except:
+                    pass
+                    """
     time.sleep(3)
