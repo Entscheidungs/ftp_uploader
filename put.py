@@ -5,15 +5,15 @@ import pysftp
 import os
 from pathlib import *
 import json
-
+from datetime import datetime
 cnopts = pysftp.CnOpts()
 cnopts.hostkeys = None  
-
+err = []
 def trova_percorsi(path,diz):
     percorso = path.split('/')[:-1]
     for _x in range(len(percorso)):
         diz[str(path)].append("/".join(percorso[:_x+1])+"/")
-        print(f"in {str(path)} ho aggiunto, {diz[str(path)]}")
+        #print(f"in {str(path)} ho aggiunto, {diz[str(path)]}")
     return diz
 
 
@@ -30,6 +30,7 @@ def upload_con_confronto():
     locale = "/home/chris/desk/"
     f = open("/home/chris/Documents/Script/ftp/reg.json")
     diz = json.load(f)
+    time.sleep(2)
     with pysftp.Connection(host=credenziali.myHostname, username=credenziali.myUsername, password=credenziali.myPassword, cnopts=cnopts) as sftp:
             
             for file in Path(locale).rglob("*.*"):
@@ -40,26 +41,23 @@ def upload_con_confronto():
                     modifica_remoto = diz[path_remoto]
                     if modifica_locale > modifica_remoto:
                         sftp.put(p_file,path_remoto)
-                    trasferiti.append(p_file)
+                        trasferiti.append(p_file)
 
                 except KeyError:
                         try:
                             sftp.put(p_file,path_remoto)
+                            trasferiti.append(p_file)
                         except:
                             if path_remoto not in diz.keys():
                                 diz[path_remoto] = []
                             diz = trova_percorsi(path_remoto,diz)
                             lista_errori.append(p_file)
-                            for path in diz[path_remoto]:
-                                print(path)
                 
                 except IsADirectoryError:
                     pass
                 except FileNotFoundError:
                     err.append(p_file)
                     
-            riscrivi_errori(lista_errori,diz)
-            print(len(trasferiti))
 def riscrivi_errori(lista_errori,diz):
     global err
     client = paramiko.SSHClient()
@@ -68,7 +66,6 @@ def riscrivi_errori(lista_errori,diz):
     locale = "/home/chris/desk/"
     with pysftp.Connection(host=credenziali.myHostname, username=credenziali.myUsername, password=credenziali.myPassword, cnopts=cnopts) as sftp:
         for p in lista_errori:
-            print(p)
             path_remoto = p.replace(locale,"/chris/")
             try:
                 sftp.put(p,path_remoto)
@@ -82,7 +79,9 @@ def riscrivi_errori(lista_errori,diz):
             except IsADirectoryError:
                 pass
             except FileNotFoundError:
-                err.append(p)
+                pass
+                #print(p)
+                #err.append(p)
                 
     client.close()
 
@@ -90,4 +89,4 @@ def riscrivi_errori(lista_errori,diz):
 while True:
     ottieni_modifiche()
     upload_con_confronto()
-    time.sleep(2)
+    time.sleep(10)
