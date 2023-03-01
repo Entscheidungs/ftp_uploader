@@ -6,6 +6,7 @@ import os
 from pathlib import *
 import json
 from datetime import datetime
+
 cnopts = pysftp.CnOpts()
 cnopts.hostkeys = None  
 err = []
@@ -57,7 +58,9 @@ def upload_con_confronto():
                     pass
                 except FileNotFoundError:
                     err.append(p_file)
-                    
+                
+
+            riscrivi_errori(lista_errori,diz)
 def riscrivi_errori(lista_errori,diz):
     global err
     client = paramiko.SSHClient()
@@ -73,7 +76,6 @@ def riscrivi_errori(lista_errori,diz):
                 for x in diz[path_remoto]:
                     comando = "mkdir "+x
                     client.exec_command(comando)
-
             try:
                 sftp.put(p,path_remoto)
             except IsADirectoryError:
